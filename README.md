@@ -1,29 +1,28 @@
 # Replace to umlauts
 
 In a nutshell, this script replaces "ae", "oe", "ue", and "ss" to the
-respective umlauts according to the `ngerman` dictionary on your machine.
+respective umlauts "ä", "ö", "ü", "ß", only if a corresponding entry can be 
+found in the `ngerman` dictionary on your machine.
 
 ## Motivation
 
-If you, like me, use the German language a lot, but prefer the American
-keyboard layout for programming, you end up writing German mails and other
-stuff with "ae", "oe", "ue", and "ss" instead of "ä", "ö", "ü", or "ß".
-Blindly replacing them will not work for words such as "Reue".
+On an English keyboard, many German text are written with "ae" etc.  Blindly 
+replacing umlauts them to umlauts will not work for words such as "Reue".
 
 This script takes text from stdin and replaces any incorrect word such as
 "Naesse" and replaces it with the correct version from the dictionary,
 "Nässe", but will leave "Reue" alone.
 
-It was primarily written as a filter script for Vim.
-
 ## Installation
 
-If you execute the `install.sh` script (as a normal user, not root), this
-should be enough to set it up. This script is developed for Linux but should
-also work on macOS.
+### Linux
+Just use `make` in the current directory, which will place the Python script in 
+your `$HOME/bin` directory.  From then on, everything should just work.  
 
-It will create a python-dictionary from the system plain text dictionary and
-copy the respective scripts into your local `$HOME/bin` directory.
+### Others 
+
+This script is tested on Linux but should also work on macOS once the umlaut 
+dict has been built (not sure about the system dictionary location there).
 
 ## Usage
 

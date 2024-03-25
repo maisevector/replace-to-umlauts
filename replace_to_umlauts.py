@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 According to the German dictionary, replace ae, oe, ue, and ss with their 
-umlauts and sharp s
+umlauts and sharp s.
 """
 import json
 import re
@@ -75,7 +75,6 @@ def replace_stdin_to_umlauts():
     Main function executing the dictionary lookup for every word.
     """
     input_text = sys.stdin.read()
-    # input_text = "Veraechtlich zeigte er Reue. Ueber Oesen im\nFloss."
     dict_path = '~/.local/share/replace-to-umlauts/ngerman_dict.json'
     umlaut_list_lower = ["ae","oe","ue","ss"]
 
@@ -116,8 +115,21 @@ def create_dict(our_dict_path):
         raise RuntimeError(f"Dictionary at {os_dict_path} does not exist.")
     with open(os_dict_path,encoding='utf8') as file:
         lines = file.readlines()
-    # TODO: How large is the performance benefit of this? Considering that it
-    # runs only once.
+    # Get umlaut words, they will be the values and keys in the new dictionary,
+    # but the values will be replaced with their ascii counterparts.
+    to_be_keys = _umlauts_from_dict(lines)
+    values = to_be_keys
+    for umlaut,umlaut_asciified in FULL_DICT.items():
+        to_be_keys = [str.replace(key,umlaut,umlaut_asciified) for key in to_be_keys]
+    ngerman_dict = dict(zip(to_be_keys, values))
+    with open(os.path.expanduser(our_dict_path),"w",encoding="utf8") as write_file:
+        json.dump(ngerman_dict,write_file,indent=4,ensure_ascii=False)
+    return True
+
+def _umlauts_from_dict(lines):
+    """
+    Returns the umlauts, which are the keys for the new dictionary.
+    """
     umlaut_lines = []
     unsave_lines = []
     for line in lines:
@@ -132,17 +144,7 @@ def create_dict(our_dict_path):
         if alt_line in unsave_lines:
             unsave_lines.remove(alt_line)
     relevant_lines = sorted(sz_lines + umlaut_lines + unsave_lines)
-    values = relevant_lines
-    # TODO is this a bug?  What about once an ß and once a ss?
-
-    # Create keys: replace all umlauts one by one
-    keys = relevant_lines
-    for umlaut,umlaut_entry in FULL_DICT.items():
-        keys = [str.replace(key,umlaut,umlaut_entry) for key in keys]
-    ngerman_dict = dict(zip(keys, values))
-    with open(os.path.expanduser(our_dict_path),"w",encoding="utf8") as write_file:
-        json.dump(ngerman_dict,write_file,indent=4,ensure_ascii=False)
-    return True
+    return relevant_lines
 
 if __name__ == '__main__':
     replace_stdin_to_umlauts()

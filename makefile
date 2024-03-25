@@ -5,3 +5,4 @@ install:
 
 tests:
 	python3 -m unittest discover
+	bash test/test_stdin.sh

@@ -8,26 +8,32 @@ import re
 import sys
 import os
 import os.path
+import pathlib
 
 UMLAUT_DICT = {"ä":"ae","ö":"oe","ü":"ue","Ä":"Ae","Ö":"Oe","Ü":"Ue"}
 FULL_DICT = {"ä":"ae","ö":"oe","ü":"ue","ß":"ss","Ä":"Ae","Ö":"Oe","Ü":"Ue"}
 
-def get_dict_path():
+def get_dict():
     """
     Get dictionary path, which should be at 
     "$XDG_DATA_DIR/.local/share/replace_to_umlauts/ngerman.dict".
     If XDG_DATA_DIR is not set, it will default to $HOME/.local/share.
     """
-    # Define path
-    if not (xdg_data_dir := os.environ["XDG_DATA_DIR"]):
+    try:
+        xdg_data_dir = os.environ["XDG_DATA_DIR"]
+    except KeyError:
         xdg_data_dir = os.path.expanduser('~/.local/share')
     dict_path = f"{xdg_data_dir}/replace_to_umlauts/ngerman.json"
     # If path does not exist, create the directory and run the setup for
     # creation
     if not os.path.exists(dict_path):
-        os.mkdir(os.path.basename(dict_path), parents = True)
+        pathlib.Path(os.path.dirname(dict_path)).mkdir(parents = True, exist_ok = True)
         create_dict(dict_path)
-    return dict_path
+        if not os.path.exists(dict_path):
+            raise RuntimeError(f"Could not create umlaut dict at {dict_path}")
+    with open(os.path.expanduser(dict_path),"r",encoding="utf8") as read_file:
+        ngerman_dict = json.load(read_file)
+    return ngerman_dict
 
 def contains_possible_umlaut(word,umlaut_list):
     """
@@ -70,34 +76,30 @@ def replace_word(word,ngerman_dict):
         sys.stderr.write(f"Did not replace anything although we found a match! Word was {word}")
     return correct_word
 
-def replace_stdin_to_umlauts():
+def replace_stdin_to_umlauts(umlaut_dict):
     """
     Main function executing the dictionary lookup for every word.
     """
     input_text = sys.stdin.read()
-    dict_path = '~/.local/share/replace-to-umlauts/ngerman_dict.json'
     umlaut_list_lower = ["ae","oe","ue","ss"]
-
-    with open(os.path.expanduser(dict_path),"r",encoding="utf8") as read_file:
-        ngerman_dict = json.load(read_file)
-
     lines = input_text.split('\n')
     for i,line in enumerate(lines):
         words = line.split(' ')
         for j,word in enumerate(words):
             if contains_possible_umlaut(word,umlaut_list_lower):
-                words[j] = replace_word(word,ngerman_dict)
+                words[j] = replace_word(word,umlaut_dict)
         lines[i] = words
-
     new_text_2 = "\n".join([" ".join(line) for line in lines])
-
     sys.stdout.write(new_text_2)
-    # TODO Should this return true?
+    return True
 
 def create_dict(our_dict_path):
     """
-    Expected to be called during first run.  Creates the dictionary.
-    The creation is as follows:
+    Expected to be called if there is no replace-to-umlaut dict found.  Creates 
+    the dictionary from /usr/share/dict/ngerman and places it $XDG_DATA_DIR or 
+    .local/share under the folder replace-to-umlauts/ngerman_dict.json.
+    ---
+    The creation works as follows:
     1) Words with umlauts but no ss (e.g. Gerät) -> umlaut_lines
     2) Words with ß (e.g. mäßig) -> sz_lines
     The following lines are unsafe and need to be checked:
@@ -147,6 +149,7 @@ def _umlauts_from_dict(lines):
     return relevant_lines
 
 if __name__ == '__main__':
-    replace_stdin_to_umlauts()
-
-    # TODO Allow passing of a dictionary during setup via double hyphen
+    umlaut_dict = get_dict()
+    replace_stdin_to_umlauts(umlaut_dict)
+    # Future ideas:
+    # - Allow custom path passed via dash or double hyphen

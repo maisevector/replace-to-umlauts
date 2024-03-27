@@ -15,22 +15,31 @@ This script takes text from stdin and replaces any incorrect word such as
 
 ## Installation
 
+The `replace_to_umlauts.py` Python script is a standalone script.  The
+`install.sh` file will place it into `~/bin`, rename it to the more
+bash-compatible manner `replace-to-umlauts`, and make it executable.
+
 ### Linux
 Just use `make` in the current directory, which will place the Python script in 
 your `$HOME/bin` directory.  From then on, everything should just work.  
 
 ### Others 
 
-This script is tested on Linux but should also work on macOS once the umlaut 
-dict has been built (not sure about the system dictionary location there).
+This script is tested on Linux but should also work on macOS if the system
+dictionary is in the same place (not sure about the system dictionary location
+there).
 
 ## Usage
 
 ### Terminal
 
-`echo "Mein Text" | replace-to-umlauts`
+`echo "Naesse und Reue" | replace-to-umlauts`
 
-`cat mein_text_file.txt | replace-to-umlauts`
+`cat my_text_file.txt | replace-to-umlauts`
+
+Alternatively and in this directory, call it via Python:
+
+`echo "Naesse und Reue" | python3 replace_to_umlauts.py`
 
 ### Vim
 Visually select the text and use `replace-to-umlauts` as a filter:
